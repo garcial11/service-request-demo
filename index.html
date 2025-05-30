@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Service Request Demo</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .container {
+            background: white;
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            width: 90%;
+            max-width: 600px;
+        }
+
+        .login-screen {
+            text-align: center;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 2rem;
+            font-size: 2rem;
+        }
+
+        h2 {
+            color: #555;
+            margin-bottom: 1.5rem;
+        }
+
+        .login-buttons {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+
+        button {
+            flex: 1;
+            padding: 1rem 2rem;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            min-width: 200px;
+        }
+
+        .contractor-btn {
+            background: #4CAF50;
+            color: white;
+        }
+
+        .contractor-btn:hover {
+            background: #45a049;
+            transform: translateY(-2px);
+        }
+
+        .manager-btn {
+            background: #2196F3;
+            color: white;
+        }
+
+        .manager-btn:hover {
+            background: #1976D2;
+            transform: translateY(-2px);
+        }
+
+        .service-btn {
+            background: #FF9800;
+            color: white;
+            margin: 0.5rem;
+            min-width: 180px;
+        }
+
+        .service-btn:hover {
+            background: #F57C00;
+            transform: translateY(-2px);
+        }
+
+        .back-btn {
+            background: #757575;
+            color: white;
+            margin-top: 1rem;
+        }
+
+        .back-btn:hover {
+            background: #616161;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .request-form {
+            margin-top: 1rem;
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+            text-align: left;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: bold;
+            color: #333;
+        }
+
+        input, textarea, select {
+            width: 100%;
+            padding: 0.8rem;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            font-size: 1rem;
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .submit-btn {
+            background: #4CAF50;
+            color: white;
+            width: 100%;
+            margin-top: 1rem;
+        }
+
+        .request-list {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .request-item {
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            background: #f9f9f9;
+            transition: all 0.3s ease;
+        }
+
+        .request-item:hover {
+            border-color: #4CAF50;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        .request-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+
+        .service-type {
+            background: #2196F3;
+            color: white;
+            padding: 0.3rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+
+        .priority {
+            font-weight: bold;
+        }
+
+        .priority.high { color: #f44336; }
+        .priority.medium { color: #ff9800; }
+        .priority.low { color: #4caf50; }
+
+        .accept-btn {
+            background: #4CAF50;
+            color: white;
+            padding: 0.5rem 1rem;
+            margin-top: 0.5rem;
+        }
+
+        .success-message {
+            background: #d4edda;
+            color: #155724;
+            padding: 1rem;
+            border-radius: 5px;
+            margin-bottom: 1rem;
+            border: 1px solid #c3e6cb;
+        }
+
+        @media (max-width: 600px) {
+            .login-buttons {
+                flex-direction: column;
+            }
+            
+            button {
+                min-width: auto;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Login Screen -->
+        <div id="loginScreen" class="login-screen">
+            <h1>Service Request System</h1>
+            <p style="margin-bottom: 2rem; color: #666;">Choose your role to continue</p>
+            <div class="login-buttons">
+                <button class="contractor-btn" onclick="showContractorDashboard()">
+                    Contractor Login
+                </button>
+                <button class="manager-btn" onclick="showManagerDashboard()">
+                    Project Manager Login
+                </button>
+            </div>
+        </div>
+
+        <!-- Project Manager Dashboard -->
+        <div id="managerDashboard" class="hidden">
+            <h2>Project Manager Dashboard</h2>
+            <p style="margin-bottom: 1.5rem; color: #666;">Select a service to request:</p>
+            
+            <div class="login-buttons">
+                <button class="service-btn" onclick="showServiceForm('contractor')">
+                    Request Contractor Services
+                </button>
+                <button class="service-btn" onclick="showServiceForm('handyman')">
+                    Request Handyman Services
+                </button>
+                <button class="service-btn" onclick="showServiceForm('cleaning')">
+                    Request Cleaning Services
+                </button>
+            </div>
+            
+            <button class="back-btn" onclick="showLogin()">Back to Login</button>
+        </div>
+
+        <!-- Service Request Form -->
+        <div id="serviceForm" class="hidden">
+            <h2 id="formTitle">Request Service</h2>
+            
+            <div id="successMessage" class="success-message hidden">
+                Request submitted successfully! It will be available for contractors to view.
+            </div>
+            
+            <div class="request-form">
+                <div class="form-group">
+                    <label for="projectName">Project Name:</label>
+                    <input type="text" id="projectName" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="description">Description:</label>
+                    <textarea id="description" placeholder="Describe the work needed..." required></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label for="priority">Priority:</label>
+                    <select id="priority" required>
+                        <option value="">Select Priority</option>
+                        <option value="high">High</option>
+                        <option value="medium">Medium</option>
+                        <option value="low">Low</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="deadline">Deadline:</label>
+                    <input type="date" id="deadline" required>
+                </div>
+                
+                <button class="submit-btn" onclick="submitRequest()">Submit Request</button>
+            </div>
+            
+            <button class="back-btn" onclick="showManagerDashboard()">Back to Dashboard</button>
+        </div>
+
+        <!-- Contractor Dashboard -->
+        <div id="contractorDashboard" class="hidden">
+            <h2>Contractor Dashboard</h2>
+            <p style="margin-bottom: 1.5rem; color: #666;">Available service requests:</p>
+            
+            <div id="requestList" class="request-list">
+                <!-- Requests will be populated here -->
+            </div>
+            
+            <button class="back-btn" onclick="showLogin()">Back to Login</button>
+        </div>
+    </div>
+
+    <script>
+        let currentServiceType = '';
+        let requests = [];
+
+        // Show different screens
+        function showLogin() {
+            hideAllScreens();
+            document.getElementById('loginScreen').classList.remove('hidden');
+        }
+
+        function showManagerDashboard() {
+            hideAllScreens();
+            document.getElementById('managerDashboard').classList.remove('hidden');
+        }
+
+        function showContractorDashboard() {
+            hideAllScreens();
+            document.getElementById('contractorDashboard').classList.remove('hidden');
+            displayRequests();
+        }
+
+        function showServiceForm(serviceType) {
+            hideAllScreens();
+            currentServiceType = serviceType;
+            document.getElementById('serviceForm').classList.remove('hidden');
+            document.getElementById('formTitle').textContent = `Request ${capitalize(serviceType)} Services`;
+            document.getElementById('successMessage').classList.add('hidden');
+            clearForm();
+        }
+
+        function hideAllScreens() {
+            document.getElementById('loginScreen').classList.add('hidden');
+            document.getElementById('managerDashboard').classList.add('hidden');
+            document.getElementById('serviceForm').classList.add('hidden');
+            document.getElementById('contractorDashboard').classList.add('hidden');
+        }
+
+        // Submit request
+        function submitRequest() {
+            const projectName = document.getElementById('projectName').value;
+            const description = document.getElementById('description').value;
+            const priority = document.getElementById('priority').value;
+            const deadline = document.getElementById('deadline').value;
+
+            if (!projectName || !description || !priority || !deadline) {
+                alert('Please fill in all fields');
+                return;
+            }
+
+            const request = {
+                id: Date.now(),
+                serviceType: currentServiceType,
+                projectName: projectName,
+                description: description,
+                priority: priority,
+                deadline: deadline,
+                status: 'pending',
+                submittedAt: new Date().toLocaleDateString()
+            };
+
+            requests.push(request);
+            document.getElementById('successMessage').classList.remove('hidden');
+            clearForm();
+        }
+
+        // Clear form
+        function clearForm() {
+            document.getElementById('projectName').value = '';
+            document.getElementById('description').value = '';
+            document.getElementById('priority').value = '';
+            document.getElementById('deadline').value = '';
+        }
+
+        // Display requests for contractors
+        function displayRequests() {
+            const requestList = document.getElementById('requestList');
+            
+            if (requests.length === 0) {
+                requestList.innerHTML = '<p style="text-align: center; color: #666; padding: 2rem;">No requests available at the moment.</p>';
+                return;
+            }
+
+            requestList.innerHTML = requests
+                .filter(request => request.status === 'pending')
+                .map(request => `
+                    <div class="request-item">
+                        <div class="request-header">
+                            <span class="service-type">${capitalize(request.serviceType)}</span>
+                            <span class="priority ${request.priority}">Priority: ${capitalize(request.priority)}</span>
+                        </div>
+                        <h3>${request.projectName}</h3>
+                        <p><strong>Description:</strong> ${request.description}</p>
+                        <p><strong>Deadline:</strong> ${request.deadline}</p>
+                        <p><strong>Submitted:</strong> ${request.submittedAt}</p>
+                        <button class="accept-btn" onclick="acceptRequest(${request.id})">Accept Request</button>
+                    </div>
+                `).join('');
+        }
+
+        // Accept request
+        function acceptRequest(requestId) {
+            const request = requests.find(r => r.id === requestId);
+            if (request) {
+                request.status = 'accepted';
+                alert(`You have accepted the request: "${request.projectName}"`);
+                displayRequests();
+            }
+        }
+
+        // Utility function
+        function capitalize(str) {
+            return str.charAt(0).toUpperCase() + str.slice(1);
+        }
+
+        // Add some sample data for demo purposes
+        function addSampleData() {
+            const sampleRequests = [
+                {
+                    id: 1,
+                    serviceType: 'contractor',
+                    projectName: 'Office Renovation',
+                    description: 'Complete renovation of the main office space including flooring, painting, and electrical work.',
+                    priority: 'high',
+                    deadline: '2025-06-15',
+                    status: 'pending',
+                    submittedAt: '5/29/2025'
+                },
+                {
+                    id: 2,
+                    serviceType: 'handyman',
+                    projectName: 'Fix Leaky Faucets',
+                    description: 'Multiple faucets in the building need repair or replacement.',
+                    priority: 'medium',
+                    deadline: '2025-06-10',
+                    status: 'pending',
+                    submittedAt: '5/28/2025'
+                },
+                {
+                    id: 3,
+                    serviceType: 'cleaning',
+                    projectName: 'Deep Clean Conference Rooms',
+                    description: 'Deep cleaning service needed for all conference rooms before important client meetings.',
+                    priority: 'high',
+                    deadline: '2025-06-05',
+                    status: 'pending',
+                    submittedAt: '5/27/2025'
+                }
+            ];
+            
+            requests.push(...sampleRequests);
+        }
+
+        // Initialize with sample data
+        addSampleData();
+    </script>
+</body>
+</html>
