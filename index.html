@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <script>
+window.addEventListener('load', function() {
+    console.log('🔍 Firebase loading test:');
+    console.log('- firebase type:', typeof firebase);
+    if (typeof firebase !== 'undefined') {
+        console.log('✅ Firebase loaded successfully!');
+        console.log('- Firebase version:', firebase.SDK_VERSION);
+        console.log('- Available apps:', firebase.apps.length);
+    } else {
+        console.error('❌ Firebase failed to load');
+        console.log('📝 Check Network tab for script loading errors');
+    }
+});
+</script>
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Service Request System</title>
+    
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-storage.js"></script>
+    
+    <!-- Simple Firebase ready check -->
+    <script>
+        window.addEventListener('load', function() {
+            if (typeof firebase !== 'undefined') {
+                console.log('✅ Firebase SDK loaded successfully');
+                console.log('🔥 Firebase version:', firebase.SDK_VERSION);
+            } else {
+                console.error('❌ Firebase SDK failed to load');
+            }
+        });
+    </script>
+    
+    <!-- CSS -->
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <!-- Firebase Connection Status -->
+    <div id="firebaseStatus" class="firebase-status connecting">Connecting...</div>
+
+    <div class="container">
+        <!-- Login Screen -->
+        <div id="loginScreen" class="login-screen">
+            <h1>🔥 Service Request System</h1>
+            <p style="margin-bottom: 2rem; color: #666;">Firebase-Powered Demo</p>
+            <div class="login-buttons">
+                <button class="contractor-btn" onclick="Auth.showContractorDashboard()">
+                    Contractor Login
+                </button>
+                <button class="manager-btn" onclick="Auth.showManagerDashboard()">
+                    Project Manager Login
+                </button>
+            </div>
+        </div>
+
+        <!-- Loading Screen -->
+        <div id="loadingScreen" class="loading hidden">
+            <h2>Loading...</h2>
+            <p>Connecting to Firebase...</p>
+        </div>
+
+        <!-- Project Manager Dashboard -->
+        <div id="managerDashboard" class="hidden">
+            <h2>Project Manager Dashboard</h2>
+            
+            <div class="contractor-nav">
+                <button class="nav-btn active" id="createRequestBtn" onclick="Dashboard.showCreateRequestSection()">
+                    Create Request
+                </button>
+                <button class="nav-btn" id="pendingQuotesBtn" onclick="Dashboard.showPendingQuotes()">
+                    Pending Quotes (<span id="pendingQuotesCount">0</span>)
+                </button>
+                <button class="nav-btn" id="approvedJobsBtn" onclick="Dashboard.showApprovedJobs()">
+                    Active Jobs (<span id="approvedJobsCount">0</span>)
+                </button>
+                <button class="nav-btn" id="completedJobsPMBtn" onclick="Dashboard.showCompletedJobsPM()">
+                    Completed (<span id="completedJobsPMCount">0</span>)
+                </button>
+            </div>
+
+            <!-- Create Request Section -->
+            <div id="createRequestSection" class="hidden">
+                <p style="margin-bottom: 1.5rem; color: #666;">Select a service to request:</p>
+                
+                <div class="login-buttons">
+                    <button class="service-btn" onclick="RequestForm.showServiceForm('contractor')">
+                        Request Contractor Services
+                    </button>
+                    <button class="service-btn" onclick="RequestForm.showServiceForm('handyman')">
+                        Request Handyman Services
+                    </button>
+                    <button class="service-btn" onclick="RequestForm.showServiceForm('cleaning')">
+                        Request Cleaning Services
+                    </button>
+                </div>
+            </div>
+
+            <!-- Pending Quotes Section -->
+            <div id="pendingQuotesSection" class="hidden">
+                <p style="margin-bottom: 1.5rem; color: #666;">Quotes waiting for your approval:</p>
+                <div id="pendingQuotesList" class="request-list">
+                    <!-- Pending quotes will be populated here -->
+                </div>
+            </div>
+
+            <!-- Approved Jobs Section -->
+            <div id="approvedJobsSection" class="hidden">
+                <p style="margin-bottom: 1.5rem; color: #666;">Your active approved jobs:</p>
+                <div id="approvedJobsList" class="request-list">
+                    <!-- Approved jobs will be populated here -->
+                </div>
+            </div>
+
+            <!-- Completed Jobs Section for PM -->
+            <div id="completedJobsPMSection" class="hidden">
+                <p style="margin-bottom: 1.5rem; color: #666;">Your completed jobs:</p>
+                <div id="completedJobsPMList" class="request-list">
+                    <!-- Completed jobs will be populated here -->
+                </div>
+            </div>
+            
+            <button class="back-btn" onclick="Auth.showLogin()">Back to Login</button>
+        </div>
+
+        <!-- Service Request Form -->
+        <div id="serviceForm" class="hidden">
+            <h2 id="formTitle">Request Service</h2>
+            
+            <div id="successMessage" class="success-message hidden">
+                Request submitted successfully! It will be available for contractors to view.
+            </div>
+            
+            <div id="errorMessage" class="error-message hidden">
+                Error submitting request. Please try again.
+            </div>
+            
+            <div class="request-form">
+                <div class="form-group">
+                    <label for="projectName">Project Name:</label>
+                    <input type="text" id="projectName" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="description">Description:</label>
+                    <textarea id="description" placeholder="Describe the work needed..." required></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label for="priority">Priority:</label>
+                    <select id="priority" required>
+                        <option value="">Select Priority</option>
+                        <option value="high">High</option>
+                        <option value="medium">Medium</option>
+                        <option value="low">Low</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="deadline">Deadline:</label>
+                    <input type="date" id="deadline" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="jobImages">Job Images (optional):</label>
+                    <div class="file-input-wrapper">
+                        <input type="file" id="jobImages" multiple accept="image/*" onchange="RequestForm.handleImageUpload(event)">
+                        <label for="jobImages" class="file-input-label" id="imageLabel">
+                            📷 Click to upload images or drag and drop
+                        </label>
+                    </div>
+                    <div id="imagePreview" class="image-preview"></div>
+                </div>
+                
+                <button class="submit-btn" onclick="RequestForm.submitRequest()" id="submitBtn">Submit Request</button>
+            </div>
+            
+            <button class="back-btn" onclick="Auth.showManagerDashboard()">Back to Dashboard</button>
+        </div>
+
+        <!-- Contractor Dashboard -->
+        <div id="contractorDashboard" class="hidden">
+            <h2>Contractor Dashboard</h2>
+            
+            <div class="contractor-nav">
+                <button class="nav-btn active" id="openRequestsBtn" onclick="Dashboard.showOpenRequests()">
+                    Open Requests
+                </button>
+                <button class="nav-btn" id="quotedJobsBtn" onclick="Dashboard.showQuotedJobs()">
+                    Quoted (<span id="quotedJobsCount">0</span>)
+                </button>
+                <button class="nav-btn" id="myJobsBtn" onclick="Dashboard.showMyJobs()">
+                    Active Jobs (<span id="myJobsCount">0</span>)
+                </button>
+                <button class="nav-btn" id="completedJobsBtn" onclick="Dashboard.showCompletedJobs()">
+                    Completed (<span id="completedJobsCount">0</span>)
+                </button>
+            </div>
+            
+            <!-- Open Requests Tab -->
+            <div id="openRequestsTab">
+                <p style="margin-bottom: 1.5rem; color: #666;">Available service requests:</p>
+                <div id="requestList" class="request-list">
+                    <!-- Requests will be populated here -->
+                </div>
+            </div>
+
+            <!-- Quoted Jobs Tab -->
+            <div id="quotedJobsTab" class="hidden">
+                <p style="margin-bottom: 1.5rem; color: #666;">Jobs you have quoted (waiting for approval):</p>
+                <div id="quotedJobsList" class="request-list">
+                    <!-- Quoted jobs will be populated here -->
+                </div>
+            </div>
+
+            <!-- My Jobs Tab -->
+            <div id="myJobsTab" class="hidden">
+                <p style="margin-bottom: 1.5rem; color: #666;">Your active approved jobs:</p>
+                <div id="myJobsList" class="request-list">
+                    <!-- Accepted jobs will be populated here -->
+                </div>
+            </div>
+
+            <!-- Completed Jobs Tab -->
+            <div id="completedJobsTab" class="hidden">
+                <p style="margin-bottom: 1.5rem; color: #666;">Jobs you have completed:</p>
+                <div id="completedJobsList" class="request-list">
+                    <!-- Completed jobs will be populated here -->
+                </div>
+            </div>
+            
+            <button class="back-btn" onclick="Auth.showLogin()">Back to Login</button>
+        </div>
+    </div>
+
+    <!-- Image Modal -->
+    <div id="imageModal" class="modal" onclick="Modals.closeModal()">
+        <span class="close">&times;</span>
+        <img class="modal-content" id="modalImage">
+    </div>
+
+    <!-- JavaScript Files -->
+    <script src="js/config/firebase-config.js"></script>
+    <script src="js/services/firebase-service.js"></script>
+    <script src="js/services/storage-service.js"></script>
+    <script src="js/utils/helpers.js"></script>
+    <script src="js/components/auth.js"></script>
+    <script src="js/components/dashboard.js"></script>
+    <script src="js/components/request-form.js"></script>
+    <script src="js/components/modals.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>
